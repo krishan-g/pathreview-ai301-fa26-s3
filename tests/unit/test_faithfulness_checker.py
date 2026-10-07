@@ -28,6 +28,14 @@ class TestFaithfulnessChecker:
         # Should be high score due to support
         assert score > 0.5
 
+    def test_reworded_claim_supported(self, checker):
+        """Test a claim is supported when the context names the same skill in other words."""
+        reworded = checker.check("Knows Python", [{"text": "python expert"}])
+        word_for_word = checker.check("Knows Python", [{"text": "The candidate knows Python"}])
+
+        assert reworded == 1.0
+        assert word_for_word == 1.0
+
     def test_feedback_with_no_support_in_context(self, checker):
         """Test feedback with no support in context returns score close to 0.0."""
         feedback = "This developer is an expert in Rust systems programming."
@@ -40,10 +48,6 @@ class TestFaithfulnessChecker:
         assert isinstance(score, float)
         assert score < 0.5  # Should be low score
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="issue #59: faithfulness checker can never mark short claims as supported",
-    )
     def test_partial_support_returns_middle_score(self, checker):
         """Test partial support returns score between 0 and 1."""
         feedback = "The developer shows Python expertise and Kubernetes knowledge."
@@ -85,10 +89,6 @@ class TestFaithfulnessChecker:
 
         assert score == 0.0
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="issue #59: faithfulness checker can never mark short claims as supported",
-    )
     def test_multiple_context_chunks(self, checker):
         """Test multiple context chunks contribute to score."""
         feedback = "The developer has Python, JavaScript, and Docker experience."
@@ -166,10 +166,6 @@ class TestFaithfulnessChecker:
         # First should be higher
         assert score1 > score2
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="issue #59: faithfulness checker can never mark short claims as supported",
-    )
     def test_multiple_claims_varying_support(self, checker):
         """Test scoring with multiple claims of varying support."""
         feedback = "Python expert. Knows Rust. Skilled with Docker."
